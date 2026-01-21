@@ -1,14 +1,101 @@
-19:37:15.098 
-npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
-19:37:15.675 
-npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
-19:37:17.184 
-npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
-19:37:17.217 
-npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
-19:37:17.414 
-npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
-19:37:21.165 
-npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+Create a new manifest
+Understanding Manifests
+A Manifest (farcaster.json) is required to register your Mini App and bind it to your domain. Think of it as DNS for your Mini App - it tells Farcaster clients about your app's name, icon, functionality, and enables deep integrations with the Farcaster ecosystem.
+Domain
+https://memorama-two.vercel.app 
 
-⚠ Using edge runtime on a page currently disables static generation for that page
+App Identity & Store Presence
+App Name
+name
+
+My Cool App
+Value is required
+App Icon
+iconUrl
+
+https://https://memorama-two.vercel.app /icon.png
+URL must not contain spaces
+Subtitle
+subtitle
+
+Connect and share instantly
+Required
+Description
+description
+
+Experience the future of social networking. Connect with friends, share moments, and discover communities that matter to you.
+Required
+Primary Category
+primaryCategory
+
+
+No category selected
+Required
+
+Visuals & Branding
+Screenshots
+screenshotUrls
+
+https://example.com/screenshot1.png
+Preview Image
+imageUrl
+
+https://https://memorama-two.vercel.app /image.png
+URL must not contain spaces
+Hero Image
+heroImageUrl
+
+https://example.com/hero.png
+Splash Screen Image
+splashImageUrl
+
+https://https://memorama-two.vercel.app /splash.png
+Splash Background Color
+splashBackgroundColor
+
+#6200EA
+Required
+
+Engagement & Discovery
+Search Tags
+tags
+
+social, messaging, community
+Marketing Tagline
+tagline
+
+Grow, Raid & Rise in Stoke Fire
+Button Title
+buttonTitle
+
+Open mini app
+Social Share Title
+ogTitle
+
+AppName – Local News Fast
+Social Share Description
+ogDescription
+
+Get breaking news and updates from your community in real-time
+Social Share Image
+ogImageUrl
+
+https://example.com/og-image.png
+Cast Share URL
+castShareUrl
+
+https://warpcast.com/~/compose?text=Check+out+this+app
+
+Technical Configuration
+Home URL
+homeUrl
+
+https://https://memorama-two.vercel.app 
+Webhook URL
+webhookUrl
+
+https://https://memorama-two.vercel.app /api/webhook
+URL must not contain spaces
+Submit
+Manifest JSON
+Invalid farcaster.json
