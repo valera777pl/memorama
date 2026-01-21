@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { base, baseSepolia } from 'wagmi/chains';
@@ -30,12 +30,20 @@ const wagmiConfig = createConfig({
     [base.id]: http(),
     [baseSepolia.id]: http(),
   },
+  ssr: true, // Enable SSR support
 });
 
-// Create query client
-const queryClient = new QueryClient();
-
 export function AppProviders({ children }: AppProvidersProps) {
+  // Create QueryClient inside component to avoid SSR issues
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
