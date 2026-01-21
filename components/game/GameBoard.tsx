@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useGameState, useTimer } from '@/hooks';
+import { useOnChainGameState, useTimer } from '@/hooks';
 import { CardGrid } from './CardGrid';
 import { GameHeader } from './GameHeader';
 import { GameOverModal } from './GameOverModal';
@@ -29,7 +29,11 @@ export function GameBoard() {
     startGame,
     newGame,
     resetGame,
-  } = useGameState();
+    // On-chain specific
+    recordGameCompletion,
+    isOnChainEnabled,
+    pendingTransactions,
+  } = useOnChainGameState();
 
   const config = DIFFICULTY_CONFIG[difficulty];
 
@@ -55,10 +59,12 @@ export function GameBoard() {
       pause();
       const score = calculateScore(moves, time, difficulty, totalPairs);
       setFinalScore(score);
+      // Record game completion on-chain
+      recordGameCompletion(moves, time, score);
       // Small delay before showing modal for better UX
       setTimeout(() => setShowGameOver(true), 500);
     }
-  }, [isGameOver, isGameStarted, moves, time, difficulty, totalPairs, pause]);
+  }, [isGameOver, isGameStarted, moves, time, difficulty, totalPairs, pause, recordGameCompletion]);
 
   // Handle time limit
   useEffect(() => {
@@ -67,9 +73,11 @@ export function GameBoard() {
       pause();
       const score = calculateScore(moves, time, difficulty, totalPairs);
       setFinalScore(score);
+      // Record game completion on-chain
+      recordGameCompletion(moves, time, score);
       setShowGameOver(true);
     }
-  }, [time, config.timeLimit, isGameStarted, isGameOver, moves, difficulty, totalPairs, pause]);
+  }, [time, config.timeLimit, isGameStarted, isGameOver, moves, difficulty, totalPairs, pause, recordGameCompletion]);
 
   const handleDifficultySelect = useCallback(
     (diff: Difficulty) => {
@@ -146,6 +154,13 @@ export function GameBoard() {
           Restart
         </Button>
       </div>
+
+      {/* On-chain transaction indicator */}
+      {isOnChainEnabled && pendingTransactions > 0 && (
+        <div className="text-xs text-muted-foreground text-center mt-2">
+          {pendingTransactions} pending tx...
+        </div>
+      )}
 
       {/* Game over modal */}
       <GameOverModal
