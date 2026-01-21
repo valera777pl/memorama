@@ -29,7 +29,10 @@ interface UseTransactionQueueOptions {
  */
 export function useTransactionQueue(options: UseTransactionQueueOptions = {}) {
   const { enabled = true, onError } = options;
+
+  // ✅ UNCONDITIONAL hook calls at top level
   const { isConnected } = useAccount();
+  const { writeContractAsync } = useWriteContract();
 
   const [queue, setQueue] = useState<QueuedTransaction[]>([]);
   const [processing, setProcessing] = useState(false);
@@ -37,8 +40,6 @@ export function useTransactionQueue(options: UseTransactionQueueOptions = {}) {
 
   const processingRef = useRef(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const { writeContractAsync } = useWriteContract();
 
   /**
    * Add a transaction to the queue
@@ -67,7 +68,7 @@ export function useTransactionQueue(options: UseTransactionQueueOptions = {}) {
    * Process a single transaction from the queue
    */
   const processNext = useCallback(async () => {
-    if (processingRef.current || queue.length === 0 || !enabled || !isConnected) {
+    if (processingRef.current || queue.length === 0 || !enabled || !isConnected || !writeContractAsync) {
       return;
     }
 

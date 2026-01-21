@@ -11,7 +11,9 @@ import { SubAccountState } from '@/lib/types';
  * without popup confirmation, enabling seamless game move recording.
  */
 export function useSubAccount() {
-  const { data: walletClient } = useWalletClient();
+  // ✅ UNCONDITIONAL hook call at top level
+  const walletClientResult = useWalletClient();
+  const walletClient = walletClientResult?.data;
 
   const [state, setState] = useState<SubAccountState>({
     address: null,

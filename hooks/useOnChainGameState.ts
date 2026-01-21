@@ -2,46 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { keccak256, encodePacked } from 'viem';
+import { useAccount } from 'wagmi';
 import { useGameState } from './useGameState';
+import { useSubAccount } from './useSubAccount';
+import { useTransactionQueue } from './useTransactionQueue';
 import { Difficulty, OnChainGameState } from '@/lib/types';
 import { DIFFICULTY_TO_UINT8, MEMORAMA_CONTRACT_ADDRESS } from '@/lib/contracts/memorama-game-log';
 
-// Conditionally import wagmi hooks to avoid crashes when provider isn't available
-let useAccount: () => { address?: `0x${string}`; isConnected: boolean };
-let useSubAccountHook: () => {
-  address: `0x${string}` | null;
-  createSubAccount: () => Promise<`0x${string}` | null>;
-  isCreating: boolean;
-};
-let useTransactionQueueHook: (options?: { enabled?: boolean }) => {
-  enqueue: (functionName: string, args: readonly unknown[]) => void;
-  queueLength: number;
-  processing: boolean;
-  errors: string[];
-};
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const wagmi = require('wagmi');
-  useAccount = wagmi.useAccount;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useSubAccountHook = require('./useSubAccount').useSubAccount;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  useTransactionQueueHook = require('./useTransactionQueue').useTransactionQueue;
-} catch {
-  // Wagmi not available, use fallbacks
-  useAccount = () => ({ address: undefined, isConnected: false });
-  useSubAccountHook = () => ({
-    address: null,
-    createSubAccount: async () => null,
-    isCreating: false,
-  });
-  useTransactionQueueHook = () => ({
-    enqueue: () => {},
-    queueLength: 0,
-    processing: false,
-    errors: [],
-  });
+/**
+ * Check if on-chain features are configured
+ * Only requires contract address - gas sponsorship is automatic via MiniKit
+ */
+function isOnChainConfigured(): boolean {
+  const contractAddress = MEMORAMA_CONTRACT_ADDRESS;
+  return (
+    !!contractAddress &&
+    contractAddress !== '0x0000000000000000000000000000000000000000'
+  );
 }
 
 /**
@@ -57,37 +34,12 @@ try {
 export function useOnChainGameState() {
   const gameState = useGameState();
 
-  // Use wagmi hooks with fallbacks
-  let walletAddress: `0x${string}` | undefined;
-  let isConnected = false;
-  let subAccountAddress: `0x${string}` | null = null;
-  let createSubAccount: () => Promise<`0x${string}` | null> = async () => null;
-  let isCreatingSubAccount = false;
-  let enqueue: (functionName: string, args: readonly unknown[]) => void = () => {};
-  let queueLength = 0;
-  let processing = false;
-  let errors: string[] = [];
-
-  try {
-    const accountResult = useAccount();
-    walletAddress = accountResult.address;
-    isConnected = accountResult.isConnected;
-
-    const subAccountResult = useSubAccountHook();
-    subAccountAddress = subAccountResult.address;
-    createSubAccount = subAccountResult.createSubAccount;
-    isCreatingSubAccount = subAccountResult.isCreating;
-
-    const queueResult = useTransactionQueueHook({
-      enabled: !!subAccountResult.address && isOnChainConfigured(),
-    });
-    enqueue = queueResult.enqueue;
-    queueLength = queueResult.queueLength;
-    processing = queueResult.processing;
-    errors = queueResult.errors;
-  } catch {
-    // Wagmi provider not available, on-chain features disabled
-  }
+  // ✅ UNCONDITIONAL hook calls at the top level
+  const { address: walletAddress, isConnected } = useAccount();
+  const { address: subAccountAddress, createSubAccount, isCreating: isCreatingSubAccount } = useSubAccount();
+  const { enqueue, queueLength, processing, errors } = useTransactionQueue({
+    enabled: !!subAccountAddress && isOnChainConfigured(),
+  });
 
   const [gameId, setGameId] = useState<`0x${string}` | null>(null);
   const [isOnChainEnabled, setIsOnChainEnabled] = useState(false);
@@ -96,19 +48,6 @@ export function useOnChainGameState() {
   // Track previous state to detect matches
   const prevMatchedPairsRef = useRef(gameState.matchedPairs);
   const prevFlippedCardsRef = useRef<string[]>([]);
-
-  /**
-   * Check if on-chain features are configured
-   * Only requires contract address - gas sponsorship is automatic via MiniKit
-   */
-  function isOnChainConfigured(): boolean {
-    const contractAddress = MEMORAMA_CONTRACT_ADDRESS;
-
-    return (
-      !!contractAddress &&
-      contractAddress !== '0x0000000000000000000000000000000000000000'
-    );
-  }
 
   /**
    * Generate a unique game ID using keccak256
