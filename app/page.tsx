@@ -6,6 +6,9 @@ import { Spinner } from '@/components/ui';
 import { useSafeAreaInsets } from '@/hooks';
 import sdk from '@farcaster/miniapp-sdk';
 
+// Prevent static generation - MiniKit requires browser environment
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   const [isReady, setIsReady] = useState(false);
   const insets = useSafeAreaInsets();
